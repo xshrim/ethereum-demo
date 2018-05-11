@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>Music Shop</title>
+  <link rel="icon" href="images/logo.ico" />
+  <!-- Bootstrap -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-12 col-sm-8 col-sm-push-2">
+        <h1 class="text-center">Music Shop</h1>
+        <hr/>
+        <br/>
+      </div>
+    </div>
+
+    <div id="musicsRow" class="row">
+      <!-- PETS LOAD HERE -->
+    </div>
+  </div>
+
+  <div id="musicTemplate" style="display: none;">
+    <div class="col-sm-8 col-md-6 col-lg-4">
+      <div class="panel panel-default panel-music">
+        <div class="panel-heading">
+          <h3 class="panel-title">Song</h3>
+        </div>
+        <div class="panel-body">
+          <img alt="140x140" data-src="holder.js/140x140" class="img-rounded img-center" style="width: 100%;" src="images/牵丝戏.jpeg"
+            data-holder-rendered="true">
+          <br/>
+          <br/>
+          <strong>Singer</strong>:
+          <span class="singer">Me</span>
+          <br/>
+          <strong>Lyrics</strong>:
+          <span class="lyrics">You</span>
+          <br/>
+          <strong>Composer</strong>:
+          <span class="composer">He</span>
+          <br/>
+          <strong>Album</strong>:
+          <span class="album">This</span>
+          <br/>
+          <strong>Issue</strong>:
+          <span class="issue">2010-01-01</span>
+          <br/>
+          <strong>Company</strong>:
+          <span class="company">Rolling stone</span>
+          <br/>
+          <strong>Price</strong>:
+          <span class="price">1000000</span>
+          <span class="unit">Wei</span>
+          <br/>
+          <audio class="audio" src="" path="" controls="controls"></audio>
+          <button class="btn btn-default btn-do" type="button" data-id="0">Buy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="js/jquery-1.12.4.min.js"></script>
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/web3.min.js"></script>
+  <script src="js/truffle-contract.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>
