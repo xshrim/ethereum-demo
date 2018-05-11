@@ -130,12 +130,6 @@ App = {
 
             var account = accounts[0];
 
-            var options = {
-                from: account,
-                gas: 4000000,
-                gasPrice: '20000000000000'
-            }
-
             App.contracts.Music.deployed().then(function (instance) {
                 musicInstance = instance;
 
@@ -147,7 +141,9 @@ App = {
                 });
                 */
                 return musicInstance.buy(musicId.toString(), musicPrice, "2100-01-01", {
-                        from: account
+                        from: account,
+                        gas: 200000,
+                        gasPrice: '20000000000'
                     })
                     .then((result) => {
                         return App.markMusic();
