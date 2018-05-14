@@ -12,9 +12,15 @@ npm install solc
 */
 
 /* 运行一个开发者节点
-var cmd = 'nohup geth --identity "myeth" --networkid 111 --nodiscover --maxpeers 10 --port "30303"  --dev --dev.period 0 --rpc --rpcapi "db,eth,net,web3,personal,miner,admin,debug" --rpcaddr 0.0.0.0 --rpccorsdomain="*" --rpcport "8545" --ws --wsapi "db,eth,net,web3,personal,miner,admin,debug" --wsaddr 0.0.0.0 --wsorigins="*" --wsport "8546" --datadir "/tmp" & 2>/dev/null'
+var cmd = 'nohup geth --identity "myeth" --networkid 111 --nodiscover --maxpeers 10 --port "30303"  --dev --dev.period 0 --gasprice "20000000000" --targetgaslimit 4712388 --rpc --rpcapi "db,eth,net,web3,personal,miner,admin,debug" --rpcaddr 0.0.0.0 --rpccorsdomain="*" --rpcport "8545" --ws --wsapi "db,eth,net,web3,personal,miner,admin,debug" --wsaddr 0.0.0.0 --wsorigins="*" --wsport "8546" --datadir "/tmp" & 2>/dev/null'
 //subprocess.exec("rm -rf /home/xshrim/test/*")
 //subprocess.exec(cmd);
+//区块gas和API gas:
+//区块gas的--gasprice参数表示区块所能接受的一个gas的最小价格(多少Wei, 默认0.05e12 Wei)
+//区块gas的--targetgaslimit参数表示一个区块最多能打包多少个gas(区块打包的所有交易消耗的gas个数相加不能高于此值, 此值可以由矿工调整)
+//API gas的gas参数表示一次交易允许消耗的gas个数的上限(如果交易实际需要消耗的gas数量高于此值, 交易会被回滚, 消耗的gas不会退回)
+//API gas的gasPrice参数表示交易消耗的gas的单价(一个gas价格是多少Wei)
+//综上, API中的gas参数值应当低于区块--targetgaslimit参数的值, 但不能太低, 否则会导致交易失败回滚; API中的gasPrice参数值应当稍微高于区块gas的gasprice参数的值, 否则区块链会拒绝将区块打包到区块中
 */
 
 // var gownerAddress, gcontractName, gcontractAbi, gcontractCode, gcontractAddress;
@@ -269,14 +275,14 @@ function main(provider, contractPath, deployFlag, invokeFlag) {
                 console.log("<deploy contracts ...>");
 
                 contracts.forEach(contract => {
-                    deploy(web3, accounts[0], contract[0], contract[1], contract[2], [10000000], 4000000, '100000000000')
+                    deploy(web3, accounts[0], contract[0], contract[1], contract[2], [10000000], 2000000, '22000000000')
                         .then((result) => {
                             console.log("<deploy contracts done>");
                             if (!invokeFlag) {
                                 process.exit();
                             } else {
                                 console.log("<invoke contract ...>");
-                                invoke(web3, result[0], result[2], result[4], ['sendMessage(bytes32)', 'getMessage()'], ['hi'], 4000000, '100000000000')
+                                invoke(web3, result[0], result[2], result[4], ['sendMessage(bytes32)', 'getMessage()'], ['hi'], 2000000, '22000000000')
                                     .then((result) => {
                                         console.log("invoke result: " + result);
                                         console.log("<invoke contract done>");
