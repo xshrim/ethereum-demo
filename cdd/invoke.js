@@ -1,11 +1,15 @@
+const fs = require('fs');
 const Web3 = require('web3');
 
 //var web3 = new Web3(Web3.givenProvider || "ws://localhost:7545");
 var web3 = new Web3(Web3.givenProvider || "ws://localhost:8546");
 
-const ownerAddress = "0x00Ed40A9D53d1Bc07aF04740AFb88C8E274cb1ef";
-const contractAbi = [{
-    "constant": false,
+var ownerAddress, contractName, contractAbi, contractAddress;
+
+/*
+ownerAddress = "0x909Ecfd1b6688eD6aa087cF89811C7ee7D4C1125";
+contractAbi = [{
+    "constant": true,
     "inputs": [],
     "name": "getBalance",
     "outputs": [{
@@ -13,7 +17,7 @@ const contractAbi = [{
         "type": "uint256"
     }],
     "payable": false,
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function",
     "signature": "0x12065fe0"
 }, {
@@ -32,7 +36,7 @@ const contractAbi = [{
     "type": "function",
     "signature": "0xb721ef6e"
 }, {
-    "constant": false,
+    "constant": true,
     "inputs": [],
     "name": "getMessage",
     "outputs": [{
@@ -40,7 +44,7 @@ const contractAbi = [{
         "type": "bytes32"
     }],
     "payable": false,
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function",
     "signature": "0xce6d41de"
 }, {
@@ -92,27 +96,36 @@ const contractAbi = [{
     "signature": "0x95743b47c851e0b3f1b63bb7dd8634b81106fd3b3695e546ff281a0635dbff75"
 }];
 
-const contractAddress = "0x593B88d5926943E53938BEe81988E557fb7d576E"; // <----- previous script output
+contractAddress = "0x7C52e944BEE27953Aae1bFA766B99b27155E265E"; // <----- previous script output
+*/
 
+var result = JSON.parse(fs.readFileSync('./contractInfo.json'));
+ownerAddress = result['ownerAddress'];
+contractName = result['contractName'];
+contractAbi = JSON.parse(result['contractAbi']);
+contractAddress = result['contractAddress'];
 
+console.log('Invoking ' + contractName + ' ...');
+
+/*
 var subscription = web3.eth.subscribe('logs', {
-        address: '0x593B88d5926943E53938BEe81988E557fb7d576E',
-    }, function (error, result) {
-        if (!error)
-            console.log(result);
-        else
-            console.log(error);
-    })
-    .on("data", function (log) {
-        console.log(log);
-    })
-    .on("changed", function (log) {});
-
+    address: '0x593B88d5926943E53938BEe81988E557fb7d576E',
+}, function (error, result) {
+    if (!error)
+        console.log(result);
+    else
+        console.log(error);
+})
+.on("data", function (log) {
+    console.log(log);
+})
+.on("changed", function (log) {});
+*/
 
 const myContract = new web3.eth.Contract(contractAbi, contractAddress);
 
 myContract.events.WatchDog({
-    fromBlock: 0,
+    fromBlock: 'latest',
     toBlock: 'latest'
 }, (error, data) => {
     if (error)
@@ -123,35 +136,54 @@ myContract.events.WatchDog({
 
 const options = {
     from: ownerAddress,
-    gas: 4000000,
-    gasPrice: '20000000000000',
+    gas: 2000000,
+    gasPrice: '22000000000',
 };
+/*
+var get3rdAccount = async () => {
+    const accounts = await web3.eth.getAccounts()
+    return accounts[3]
+}
+console.log(get3rdAccount());
+*/
 
-const message = web3.utils.asciiToHex('hola');
+//web3.eth.accounts.create(web3.utils.randomHex(32));
+/*
+account = web3.eth.accounts.create();
+console.log(account);
+web3.eth.getAccounts().then((accounts) => {
+    console.log(accounts[3]);
+    process.exit();
+})
+*/
 
-myContract.methods.sendMessage(message)
-    .send(options, (err, hash) => {
-        if (err) {
-            console.log(err);
-        }
-        console.log(`TxHash: ${hash}`);
-    })
-    .on('receipt', function (receipt) {
-        // receipt example
-        console.log('Receipt: ' + JSON.stringify(receipt));
-    })
-    .then((result) => {
-        return myContract.methods.getMessage().call()
-            .then((result) => {
-                console.log(web3.utils.hexToAscii(result));
+if (true) {
+    const message = web3.utils.asciiToHex('OK');
+
+    myContract.methods.sendMessage(message)
+        .send(options, (err, hash) => {
+            if (err) {
+                console.log(err);
+            }
+            console.log(`TxHash: ${hash}`);
+        })
+        .on('receipt', function (receipt) {
+            // receipt example
+            console.log('Receipt: ' + JSON.stringify(receipt));
+        })
+        .then((result) => {
+            return myContract.methods.getMessage().call()
+                .then((result) => {
+                    console.log(web3.utils.hexToAscii(result));
+                });
+        }).then((res) => {
+            // unsubscribes the subscription
+            /*
+            subscription.unsubscribe(function (error, success) {
+                if (success)
+                    console.log('Successfully unsubscribed!');
             });
-    }).then((res) => {
-        // unsubscribes the subscription
-        /*
-        subscription.unsubscribe(function (error, success) {
-            if (success)
-                console.log('Successfully unsubscribed!');
+            */
+            process.exit();
         });
-        */
-        process.exit();
-    });
+}

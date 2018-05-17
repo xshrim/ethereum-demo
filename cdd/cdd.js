@@ -12,7 +12,7 @@ npm install solc
 */
 
 /* 运行一个开发者节点
-var cmd = 'nohup geth --identity "myeth" --networkid 111 --nodiscover --maxpeers 10 --port "30303"  --dev --dev.period 0 --gasprice "20000000000" --targetgaslimit 4712388 --rpc --rpcapi "db,eth,net,web3,personal,miner,admin,debug" --rpcaddr 0.0.0.0 --rpccorsdomain="*" --rpcport "8545" --ws --wsapi "db,eth,net,web3,personal,miner,admin,debug" --wsaddr 0.0.0.0 --wsorigins="*" --wsport "8546" --datadir "/tmp" & 2>/dev/null'
+var cmd = 'nohup geth --identity=myeth --networkid=111 --nodiscover --maxpeers=10 --port=30303 --dev --dev.period=0 --gasprice=20000000000 --targetgaslimit=4712388 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8545 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug --wsaddr=0.0.0.0 --wsorigins=* --wsport=8546 --datadir=/tmp & 2>/dev/null'
 //subprocess.exec("rm -rf /home/xshrim/test/*")
 //subprocess.exec(cmd);
 //区块gas和API gas:
@@ -31,33 +31,43 @@ function sleep(milliSeconds) {
 };
 
 function display(ownerAddress, contractName, contractAbi, contractCode, contractAddress) {
+    var jsonObj = {}
     console.log("================================================================================");
     if (ownerAddress !== 'undefined' && ownerAddress !== '') {
+        jsonObj['ownerAddress'] = ownerAddress;
         console.log("------------------------------- Owner Address Begin ----------------------------");
         console.log(ownerAddress);
         console.log("-------------------------------- Owner Address End -----------------------------");
     }
     if (contractName !== 'undefined' && contractName !== '') {
+        jsonObj['contractName'] = contractName;
         console.log("------------------------------- Contract Name Begin ----------------------------");
         console.log(contractName);
         console.log("-------------------------------- Contract Name End -----------------------------");
     }
     if (contractAbi !== 'undefined' && contractAbi !== '') {
+        jsonObj['contractAbi'] = contractAbi;
         console.log("------------------------------- Contract ABI Begin -----------------------------");
         console.log(contractAbi);
         console.log("-------------------------------- Contract ABI End ------------------------------");
     }
     if (contractCode !== 'undefined' && contractCode !== '') {
+        jsonObj['contractCode'] = contractCode;
         console.log("------------------------------- Contract Code Begin ----------------------------");
         console.log(contractCode);
         console.log("-------------------------------- Contract Code End -----------------------------");
     }
     if (contractAddress !== 'undefined' && contractAddress !== '') {
+        jsonObj['contractAddress'] = contractAddress;
         console.log("------------------------------ Contract Address Begin --------------------------");
         console.log(contractAddress);
         console.log("------------------------------- Contract Address End ---------------------------");
     }
     console.log("================================================================================");
+
+    fs.writeFile('./contractInfo.json', JSON.stringify(jsonObj), function (err) {
+        console.log(err);
+    });
 }
 
 // 初始化web3实例
@@ -73,6 +83,19 @@ function init(provider) {
     }
     return web3;
 }
+
+/* 变异步为同步
+const fs = require('fs/promises');
+
+const readConfig = async (configFile) => {
+  try {
+      const config = await fs.readFile(configFile, 'utf-8');
+      // do something with file contents
+  } catch (e) {
+    throw new Error(`Failed to load config file at ${configFile}`);
+  }
+} 
+*/
 
 // 编译solidity源码
 function compile(filepath) {
@@ -305,10 +328,39 @@ function main(provider, contractPath, deployFlag, invokeFlag) {
     }
 }
 
+/*
+var flag = 0;
+var spawn = require('child_process').spawn;
+free = spawn('geth', ['--identity=myeth', '--networkid=111', '--nodiscover', '--maxpeers=10', '--port=30303', '--dev', '--dev.period=0', '--gasprice=20000000000', '--targetgaslimit=4712388', '--rpc', '--rpcapi=db,eth,net,web3,personal,miner,admin,debug', '--rpcaddr=0.0.0.0', '--rpccorsdomain=*', '--rpcport=8545', '--ws', '--wsapi=db,eth,net,web3,personal,miner,admin,debug', '--wsaddr=0.0.0.0', '--wsorigins=*', '--wsport=8546', '--datadir=/tmp']);
+// 捕获标准输出并将其打印到控制台 
+free.stdout.on('data', function (data) {
+    console.log('standard output:\n' + data);
+});
+// 捕获标准错误输出并将其打印到控制台 
+free.stderr.on('data', function (data) {
+    console.log('standard error output:\n' + data);
+    if (flag == 0 && data.indexOf('waiting for transactions') > 0) {
+        flag = 1;
+        console.log('GO');
+        var deployFlag = true; // 是否部署合约
+        var invokeFlag = false; // 是否进行函数调用测试
+        var contractPath = './Echo.sol';
+        var provider = "ws://localhost:8546"
+
+        main(provider, contractPath, deployFlag, invokeFlag);
+    }
+});
+// 注册子进程关闭事件 
+free.on('exit', function (code, signal) {
+    console.log('child process eixt ,exit:' + code);
+});
+*/
+
 // var provider = "ws://localhost:7545"
+
 var deployFlag = true; // 是否部署合约
-var invokeFlag = false; // 是否进行函数调用测试
-var contractPath = './Music.sol';
+var invokeFlag = true; // 是否进行函数调用测试
+var contractPath = './Test.sol';
 var provider = "ws://localhost:8546"
 
 main(provider, contractPath, deployFlag, invokeFlag);
