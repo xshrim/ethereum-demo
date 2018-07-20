@@ -9,16 +9,20 @@
     - [前置准备](#前置准备)
         - [go安装](#go安装)
         - [go-ethereum安装](#go-ethereum安装)
+        - [关闭防火墙](#关闭防火墙)
     - [环境部署](#环境部署)
         - [环境说明](#环境说明)
             - [PoA概述](#poa概述)
             - [网络结构](#网络结构)
         - [部署过程](#部署过程)
             - [建立账号](#建立账号)
+            - [生成密码文件](#生成密码文件)
             - [生成创世json文件](#生成创世json文件)
+            - [编辑创世json文件](#编辑创世json文件)
             - [初始化节点](#初始化节点)
             - [启动boot节点](#启动boot节点)
             - [启动各节点](#启动各节点)
+            - [验证节点间连通性](#验证节点间连通性)
             - [交易测试](#交易测试)
             - [api调用测试](#api调用测试)
             - [新增认证节点](#新增认证节点)
@@ -26,6 +30,7 @@
     - [压力测试](#压力测试)
         - [压测脚本](#压测脚本)
         - [压测步骤](#压测步骤)
+    - [Sample](#sample)
 
 <!-- /TOC -->
 
@@ -56,6 +61,20 @@ cd  go-ethereum
 git checkout v1.8.9  (git tag查看最新版本)
 make geth
 make all
+```
+
+### 关闭防火墙
+
+如果是多主机环境, 防火墙可能导致节点间无法通信, 需要开放相应节点端口(默认30301, 30313)或关闭防火墙.
+
+```bash
+# centos 6
+service iptables stop
+chkconfig iptables off
+
+#centos 7
+systemctl stop firewalld
+systemctl disable firewalld
 ```
 
 ---
@@ -94,6 +113,14 @@ mkdir priv
 cd /tmp/priv
 for i in 1 2 3 4 5; do geth --datadir ./node$i account new; done    # 为每一个账号输入口令
 ```
+
+#### 生成密码文件
+
+为每一个节点的初始账号生成一个密码文件以便解锁账号
+```bash
+for i in 1 2 3 4 5; do echo "node"$i > /tmp/priv/node$i/node$i.pass; done
+```
+
 
 #### 生成创世json文件
 
@@ -144,6 +171,15 @@ puppeth
 cat priv.json
 ```
 
+#### 编辑创世json文件
+
+编辑创世json文件的gasLimit参数以保证大交易(如合约部署)可以顺利执行.
+
+```bash
+vi priv.json
+"gasLimit": "0x8000000"      # 默认值为 0x47b760
+```
+
 #### 初始化节点
 
 使用创世json文件初始化各节点
@@ -158,10 +194,11 @@ boot节点用于各对等节点间互相发现. 各节点互相发现后, boot�
 
 ```bash
 bootnode --genkey=boot.key                                                          # 生成boot节点key文件
-bootnode --nodekey=boot.key                                                         # 启动boot节点
+nohup bootnode --nodekey=boot.key &> /tmp/priv/node1/boot.log &                                                      # 启动boot节点
 ```
 
 **注**: boot节点启动后会提供一个enode连接码供ethereum节点连接:
+> cat boot.log
 > enode://5e9cc210572f70853f2bc700ae50d65f10cad4910aa5785e0a9f4bf5c2097720f160348718c7b72ae9bd8ede7190cd681f971f6790647369c22d31eb1ee7c1f2@[::]:30301
 启动ethereum节点使用此连接时需要将[::]部分改为boot节点的IP.
 
@@ -172,15 +209,21 @@ bootnode --nodekey=boot.key                                                     
 ```bash
 # 分别开启一个单独的终端窗口执行节点服务启动的命令, 启动后需要输入初始矿工账号的口令以解锁账号
 # 窗口1
-geth --identity=priv --networkid=11111 --maxpeers=50 --port=30313 --gasprice=1 --targetgaslimit=4712388 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8515 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug --wsaddr=0.0.0.0 --wsorigins=* --wsport=8516 --mine --minerthreads=1 --etherbase=0x2ab766077d074e0b4976213f3b836e40b04cbc71 --unlock=0x2ab766077d074e0b4976213f3b836e40b04cbc71 --datadir=/tmp/priv/node1 --bootnodes=enode://5e9cc210572f70853f2bc700ae50d65f10cad4910aa5785e0a9f4bf5c2097720f160348718c7b72ae9bd8ede7190cd681f971f6790647369c22d31eb1ee7c1f2@127.0.0.1:30301 console
+nohup geth --identity=node1 --networkid=11111 --maxpeers=50 --port=30313 --syncmode=full --gasprice=1 --targetgaslimit=471238800 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug,txpool --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8515 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug,txpool --wsaddr=0.0.0.0 --wsorigins=* --wsport=8516 --mine --minerthreads=1 --etherbase=0x2ab766077d074e0b4976213f3b836e40b04cbc71 --unlock=0x2ab766077d074e0b4976213f3b836e40b04cbc71 --password=/tmp/priv/node1/node1.pass --datadir=/tmp/priv/node1 --bootnodes=enode://5e9cc210572f70853f2bc700ae50d65f10cad4910aa5785e0a9f4bf5c2097720f160348718c7b72ae9bd8ede7190cd681f971f6790647369c22d31eb1ee7c1f2@127.0.0.1:30301 &> /tmp/priv/node1/node1.log &
 # 窗口2
-geth --identity=priv --networkid=11111 --maxpeers=50 --port=30323 --gasprice=1 --targetgaslimit=4712388 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8525 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug --wsaddr=0.0.0.0 --wsorigins=* --wsport=8526 --mine --minerthreads=1 --etherbase=0x470a0985df071f964c9ea1a0428cc00f341106c0 --unlock=0x470a0985df071f964c9ea1a0428cc00f341106c0 --datadir=/tmp/priv/node2 --bootnodes=enode://5e9cc210572f70853f2bc700ae50d65f10cad4910aa5785e0a9f4bf5c2097720f160348718c7b72ae9bd8ede7190cd681f971f6790647369c22d31eb1ee7c1f2@127.0.0.1:30301 console
+nohup geth --identity=node2 --networkid=11111 --maxpeers=50 --port=30323 --syncmode=full --gasprice=1 --targetgaslimit=471238800 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug,txpool --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8525 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug,txpool --wsaddr=0.0.0.0 --wsorigins=* --wsport=8526 --mine --minerthreads=1 --etherbase=0x470a0985df071f964c9ea1a0428cc00f341106c0 --unlock=0x470a0985df071f964c9ea1a0428cc00f341106c0 --password=/tmp/priv/node2/node2.pass --datadir=/tmp/priv/node2 --bootnodes=enode://5e9cc210572f70853f2bc700ae50d65f10cad4910aa5785e0a9f4bf5c2097720f160348718c7b72ae9bd8ede7190cd681f971f6790647369c22d31eb1ee7c1f2@127.0.0.1:30301 &> /tmp/priv/node2/node2.log &
 # 窗口3
-geth --identity=priv --networkid=11111 --maxpeers=50 --port=30333 --gasprice=1 --targetgaslimit=4712388 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8535 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug --wsaddr=0.0.0.0 --wsorigins=* --wsport=8536 --mine --minerthreads=1 --etherbase=0x1290cc0186210482522921c8813615a3c7024f6b --unlock=0x1290cc0186210482522921c8813615a3c7024f6b --datadir=/tmp/priv/node3 --bootnodes=enode://5e9cc210572f70853f2bc700ae50d65f10cad4910aa5785e0a9f4bf5c2097720f160348718c7b72ae9bd8ede7190cd681f971f6790647369c22d31eb1ee7c1f2@127.0.0.1:30301 console
+nohup geth --identity=node3 --networkid=11111 --maxpeers=50 --port=30333 --syncmode=full --gasprice=1 --targetgaslimit=471238800 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug,txpool --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8535 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug,txpool --wsaddr=0.0.0.0 --wsorigins=* --wsport=8536 --mine --minerthreads=1 --etherbase=0x1290cc0186210482522921c8813615a3c7024f6b --unlock=0x1290cc0186210482522921c8813615a3c7024f6b --password=/tmp/priv/node3/node3.pass --datadir=/tmp/priv/node3 --bootnodes=enode://5e9cc210572f70853f2bc700ae50d65f10cad4910aa5785e0a9f4bf5c2097720f160348718c7b72ae9bd8ede7190cd681f971f6790647369c22d31eb1ee7c1f2@127.0.0.1:30301 &> /tmp/priv/node3/node3.log &
 # 窗口4
-geth --identity=priv --networkid=11111 --maxpeers=50 --port=30343 --gasprice=1 --targetgaslimit=4712388 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8545 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug --wsaddr=0.0.0.0 --wsorigins=* --wsport=8546 --mine --minerthreads=1 --etherbase=0x88efb100cfd993390ac06d9a117d918725d07dfc --unlock=0x88efb100cfd993390ac06d9a117d918725d07dfc --datadir=/tmp/priv/node4 --bootnodes=enode://5e9cc210572f70853f2bc700ae50d65f10cad4910aa5785e0a9f4bf5c2097720f160348718c7b72ae9bd8ede7190cd681f971f6790647369c22d31eb1ee7c1f2@127.0.0.1:30301 console
+nohup geth --identity=node4 --networkid=11111 --maxpeers=50 --port=30343 --syncmode=full --gasprice=1 --targetgaslimit=471238800 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug,txpool --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8545 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug,txpool --wsaddr=0.0.0.0 --wsorigins=* --wsport=8546 --mine --minerthreads=1 --etherbase=0x88efb100cfd993390ac06d9a117d918725d07dfc --unlock=0x88efb100cfd993390ac06d9a117d918725d07dfc --password=/tmp/priv/node4/node4.pass --datadir=/tmp/priv/node4 --bootnodes=enode://5e9cc210572f70853f2bc700ae50d65f10cad4910aa5785e0a9f4bf5c2097720f160348718c7b72ae9bd8ede7190cd681f971f6790647369c22d31eb1ee7c1f2@127.0.0.1:30301 &> /tmp/priv/node4/node4.log &
 # 窗口5
-geth --identity=priv --networkid=11111 --maxpeers=50 --port=30353 --gasprice=1 --targetgaslimit=4712388 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8555 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug --wsaddr=0.0.0.0 --wsorigins=* --wsport=8556 --mine --minerthreads=1 --etherbase=0x5960563fab4d74398c3cc9673dab93c250b7cd70 --unlock=0x5960563fab4d74398c3cc9673dab93c250b7cd70 --datadir=/tmp/priv/node5 --bootnodes=enode://5e9cc210572f70853f2bc700ae50d65f10cad4910aa5785e0a9f4bf5c2097720f160348718c7b72ae9bd8ede7190cd681f971f6790647369c22d31eb1ee7c1f2@127.0.0.1:30301 console
+nohup geth --identity=node5 --networkid=11111 --maxpeers=50 --port=30353 --syncmode=full --gasprice=1 --targetgaslimit=471238800 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug,txpool --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8555 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug,txpool --wsaddr=0.0.0.0 --wsorigins=* --wsport=8556 --mine --minerthreads=1 --etherbase=0x5960563fab4d74398c3cc9673dab93c250b7cd70 --unlock=0x5960563fab4d74398c3cc9673dab93c250b7cd70 --password=/tmp/priv/node5/node5.pass --datadir=/tmp/priv/node5 --bootnodes=enode://5e9cc210572f70853f2bc700ae50d65f10cad4910aa5785e0a9f4bf5c2097720f160348718c7b72ae9bd8ede7190cd681f971f6790647369c22d31eb1ee7c1f2@127.0.0.1:30301 &> /tmp/priv/node5/node5.log &
+```
+
+#### 验证节点间连通性
+
+```bash
+> admin.peers                 # 正常应该显示除自身以外的所有节点
 ```
 
 #### 交易测试
@@ -188,7 +231,7 @@ geth --identity=priv --networkid=11111 --maxpeers=50 --port=30353 --gasprice=1 -
 在node5的ethereum控制台下新建应该账号, 并发起一笔转账交易, 测试私有链网络的可用性
 
 ```bash
-> personal.newAccount('hi')
+> personal.newAccount('test')
 > eth.accounts
 > eth.sendTransaction({from:eth.accounts[0], to:eth.accounts[1], value: web3.toWei(3, 'ether')})
 > txpool.status
@@ -496,3 +539,16 @@ print(num, tnum)
 - 本压测过程因在即时出块策略下模拟高交易并发, 因此TPS并不高, 大概在60TPS左右; 如果在高并发情景下使用固定出块策略, 同时调整targetgaslimit使一个区块能打包更多交易(使用默认值4712388的情况下, 一个区块可以打包合约产生的交易个数约为120个), 则TPS应该会有所提高.
 - geth本身还支持一些调优参数, 后续再研究.
 - 本压测受环境所限, 硬件配置与生产环境相差较大, 网络环境却比生产环境更好, 交易本身也比较简单, 这些因素都会影响实际的性能表现.
+
+## Sample
+
+物理机部署三节点的命令样例.
+
+```bash
+nohup geth --identity=node1 --networkid=111 --maxpeers=50 --port=30313 --syncmode=full --gasprice=1 --targetgaslimit=471238800 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug,txpool --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8545 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug,txpool --wsaddr=0.0.0.0 --wsorigins=* --wsport=8546 --mine --minerthreads=1 --etherbase=0xa8150525e6e90a16c4fd3881c651093c618dc20f --unlock=0xa8150525e6e90a16c4fd3881c651093c618dc20f --password=/root/node1/node1.pass --datadir=/root/node1 --bootnodes=enode://5e06027be450833c1783f69c2a57393ef101806fe4175e85b3edc0ef6d368ce8de1fca625503e2b9daa4d98f1b1871acebeedcefab5cdb8d9ffa8b70f0e34a60@192.168.115.17:30301 &> /root/node1/node1.log &
+
+nohup geth --identity=node2 --networkid=111 --maxpeers=50 --port=30313 --syncmode=full --gasprice=1 --targetgaslimit=471238800 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug,txpool --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8545 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug,txpool --wsaddr=0.0.0.0 --wsorigins=* --wsport=8546 --mine --minerthreads=1 --etherbase=0x39b760038ff2faad4f4939ddd44aa46ca3ee89b6 --unlock=0x39b760038ff2faad4f4939ddd44aa46ca3ee89b6 --password=/root/node2/node2.pass --datadir=/root/node2 --bootnodes=enode://5e06027be450833c1783f69c2a57393ef101806fe4175e85b3edc0ef6d368ce8de1fca625503e2b9daa4d98f1b1871acebeedcefab5cdb8d9ffa8b70f0e34a60@192.168.115.17:30301 &> /root/node2/node2.log &
+
+nohup geth --identity=node3 --networkid=111 --maxpeers=50 --port=30313 --syncmode=full --gasprice=1 --targetgaslimit=471238800 --rpc --rpcapi=db,eth,net,web3,personal,miner,admin,debug,txpool --rpcaddr=0.0.0.0 --rpccorsdomain=* --rpcport=8545 --ws --wsapi=db,eth,net,web3,personal,miner,admin,debug,txpool --wsaddr=0.0.0.0 --wsorigins=* --wsport=8546 --mine --minerthreads=1 --etherbase=0xaa35a703bdf7f874ca5f02366dbe0490051275db --unlock=0xaa35a703bdf7f874ca5f02366dbe0490051275db --password=/root/node3/node3.pass --datadir=/root/node3 --bootnodes=enode://5e06027be450833c1783f69c2a57393ef101806fe4175e85b3edc0ef6d368ce8de1fca625503e2b9daa4d98f1b1871acebeedcefab5cdb8d9ffa8b70f0e34a60@192.168.115.17:30301 &> /root/node3/node3.log &
+
+```
