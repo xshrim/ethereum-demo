@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>区块链浏览器</title>
+    <link rel="shortcut icon" type="image/x-icon" href="./refs/img/favicon.png" />
+    <link type="text/css" rel="stylesheet" href="./refs/css/bootstrap.css" />
+    <link type="text/css" rel="stylesheet" href="./refs/css/toastr.css" />
+    <link type="text/css" rel="stylesheet" href="./refs/css/lobibox.css" />
+    <link type="text/css" rel="stylesheet" href="./refs/css/animate.css" />
+    <link type="text/css" rel="stylesheet" href="./refs/css/jquery.zsign.css" />
+    <link type="text/css" rel="stylesheet" href="./refs/css/common.css" />
+
+    <script type="text/javascript" src="./refs/js/jquery.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./refs/js/bootstrap.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./refs/js/go.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./refs/js/toastr.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./refs/js/lobibox.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./refs/js/messageboxes.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./refs/js/notifications.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./refs/js/jquery.magicmove.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./refs/js/jquery.zsign.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./refs/js/echarts.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./refs/js/socket.io.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./refs/js/common.js" charset="utf-8"></script>
+
+    <script>
+    </script>
+
+    <style type="text/css">
+    </style>
+</head>
+<!--<link rel="stylesheet" type="text/css" href="./css/reset.css" />-->
+
+
+
+<body>
+
+    <div id="main">
+        <div class="header clearfix">
+            <div class="col-sm-2">
+                <a href="#" class="logo"><img src="./refs/img/logo.png" /></a>
+            </div>
+            <div class="col-sm-7">
+                <div class="nav">
+                    <ul class="nav nav-tabs">
+                        <li role="presentation" class="active">
+                            <a href="javascript:void(0)" id="mainPage">首页</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="javascript:void(0)" id="toolPage">功能面板</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#">区块/交易信息</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-sm-3 clearfix">
+                <div class="manager right">
+                    <ul class="clearfix">
+                        <li class="head-logo"><img src="./refs/img/avatar.jpg" /></li>
+                        <li>欢迎：<span>Admin</span>！</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div id="container" class="container clearfix">
+            <div class="con_left">
+                <div class="chain">
+                    <div class="row clearfix">
+                        <div class="chain_height col-sm-2">
+                            <a href="#">
+                                <span class="glyphicon glyphicon-btc" aria-hidden="true"></span>
+                                <div class="left">
+                                    <h4>区块数量</h4>
+                                    <div class="numberRun1"></div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="f_chain col-sm-2">
+                            <span class="glyphicon glyphicon-euro" aria-hidden="true"></span>
+                            <div class="left">
+                                <h4>叔块数量</h4>
+                                <div class="numberRun2"></div>
+                            </div>
+                        </div>
+                        <div class="trade_num col-sm-2">
+                            <a href="#">
+                                <span class="glyphicon glyphicon-random" aria-hidden="true"></span>
+                                <div class="left">
+                                    <h4>交易数量</h4>
+                                    <div class="numberRun3"></div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="address_num col-sm-2">
+                            <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+                            <div class="left">
+                                <h4>地址数量</h4>
+                                <div class="numberRun4"></div>
+                            </div>
+                        </div>
+                        <div class="up_num col-sm-2">
+                            <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
+                            <div class="left">
+                                <h4>挂起交易数量</h4>
+                                <div class="numberRun5"></div>
+                            </div>
+                        </div>
+                        <div class="lined_num col-sm-2">
+                            <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+                            <div class="left">
+                                <h4>列队交易数量</h4>
+                                <div class="numberRun6"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chartsBox">
+                <div class="con_right col-sm-6">
+                    <div id="chartNode"></div>
+                </div>
+                <div class="con_right col-sm-6">
+                    <div id="chartLine"></div>
+                </div>
+            </div>
+            <div class="recently_list clearfix">
+                <div class="re_chain col-sm-6">
+                    <div>
+                        <span class="stitle">Blocks</span>
+                        <button class="sbtn">More</button>
+                    </div>
+                    <ul class="chain_tbody">
+                    </ul>
+                </div>
+                <div class="re_trade col-sm-6">
+                    <div>
+                        <span class="stitle">Transactions</span>
+                        <button class="sbtn">More</button>
+                    </div>
+                    <ul class="trade_tbody">
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!--功能面板模态框-->
+        <div class="modal fade" tabindex="-1" role="dialog" id="control">
+            <div class="modal-dialog" role="document" style="width:360px;height:700px">
+                <div class="modal-content" style="height:700px">
+                    <div class="modal-header" style="height:30px">
+                        <!--
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        -->
+                        <span class="modal-title">功能面板</span>
+                    </div>
+                    <div class="modal-body" style="width:358px;height:665px">
+                        <div class="control_list">
+                            <ul class="conTab">
+                                <li class="active">最新</li>
+                                <li>热门</li>
+                                <li>新闻</li>
+                            </ul>
+                            <div class="tabCon">
+                                <div class="on">
+                                    <ul class="newslist01">
+                                        <li><a href="#"><span>【前端】</span>iframe实现关闭当前窗口效果<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【前端】</span>div透明边框的设置及ie兼容<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【福利】</span>你是我的好朋友，我要送你个天猫红包<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【活动】</span>蚂蚁金服开放平台合作伙伴大会(北京8.10)<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【推荐】</span>融云即时通讯云－豆果美食、Faceu等亿级APP都在用<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【推荐】</span>50万行VC++源码: 大型组态工控、电力仿真CAD与GIS源码库<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <ul class="newslist01">
+                                        <li><a href="#"><span>【前端】</span>OpenBSD 6.0将移除Linux子系统以改进安全<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【前端】</span>Facebook计划在旧金山设立首个办公室<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【福利】</span>雅虎也“死”了 互联网到了谈论基业长青的年代<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【活动】</span>乐视回应“1分钱买会员后自动续费”：将赠送一年会员<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【推荐】</span>高德开放平台发布AMAP Inside战略 服务神州租车等30万移动应用<span
+                                                    class="ding">【置顶】</span></a><span class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【推荐】</span>50万行VC++源码: 大型组态工控、电力仿真CAD与GIS源码库<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <ul class="newslist01">
+                                        <li><a href="#"><span>【前端】</span>可是姑娘，你为什么要编程呢？<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【前端】</span>知其所以然（以算法学习为例）<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【福利】</span>如何给变量取个简短且无歧义的名字<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【活动】</span>写给初学前端工程师的一封信<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【推荐】</span>融云即时通讯云－豆果美食、Faceu等亿级APP都在用<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                        <li><a href="#"><span>【推荐】</span>50万行VC++源码: 大型组态工控、电力仿真CAD与GIS源码库<span class="ding">【置顶】</span></a><span
+                                                class="time">2016-07-17</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--
+                    <div class="modal-footer" style="height:30px">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                    -->
+                </div>
+            </div>
+        </div>
+
+        <!--详情模态框-->
+        <div class="modal fade" tabindex="-1" role="dialog" id="details">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <!--
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        -->
+                        <span class="modal-title">详情</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="details-list">
+
+                        </div>
+                    </div>
+                    <!--
+                    <div class="modal-footer" style="height:30px">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                    -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+
+</html>

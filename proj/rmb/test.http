@@ -1,0 +1,34 @@
+    struct Token {
+        bytes32 idhash;         // Token唯一标识
+        bytes32 parenthash;     // 父Token唯一标识, ""0x00": 没有父Token
+        bytes32 origincode;     // Token分配码(最初授予Token的相关信息), "0x00": 分配而来, "0x01": 拆分而来,  还可以是一些信息的hash
+        bytes32 statuscode;     // Token状态改变码, "0x00": 因分配而改变, "0x01": 因拆分而改变, "0x10": 因进入其他链而改变, "0x11": 不可用, 还可以是一些具体原因的hash(如交易合同)
+        bytes32 typecode;       // Token物品类型码, "credit"表示额度, "tender"表示法币, 其他表示普通物品类
+        bytes32 itemcode;       // Token物品码, Token对应的物品编码
+        bytes32 unitcode;       // Token度量码, Token的度量单位
+        address saddr;          // Token最初所属地址
+        address caddr;          // Token当前所属地址
+        uint snetwork;        // Token最初所属网络
+        uint cnetwork;        // Token当前所属网络
+        uint amount;            // Token份额(最小可拆分数)
+        uint gtimestamp;        // Token生成时间
+        uint ftimestamp;        // Token生效时间
+        uint etimestamp;        // Token失效时间
+        uint ctimestamp;        // Token最后一次流转时间
+        uint stimestamp;        // Token最后一次状态改变时间
+        uint status;            // Token当前状态, 0: normal, 1: external, 2: freezen, 6: invalid 
+    }
+
+    
+    // uint networkid = 111;
+
+    address public owner;
+
+    uint tknum;
+    mapping (uint => bytes32) tkidxs;
+    mapping (bytes32 => Token) tokens;              // tkid => Token
+    mapping (bytes32 => address) ledgers;
+    uint sncount;
+    mapping (uint => string) sns;
+    mapping (string => string) stxs;
+    mapping (address => uint) counts;               // 持有Token数量
